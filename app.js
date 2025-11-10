@@ -1,11 +1,12 @@
-
+// Data model
 let products = [];
 let categories = new Set();
 
+// State
+let activeCategories = new Set(); // Will be set after loading categories
+let cart = new Map(); // id -> { product, qty }
 
-let activeCategories = new Set();
-let cart = new Map();
-
+// Cart persistence functions
 function saveCartToStorage() {
 	const cartData = Array.from(cart.entries()).map(([id, item]) => ({
 		id: id,
@@ -31,6 +32,7 @@ function loadCartFromStorage() {
 	}
 }
 
+// Elements
 const gridEl = document.getElementById("productGrid");
 const searchEl = document.getElementById("search");
 const categoryListEl = document.getElementById("categoryList");
@@ -38,6 +40,7 @@ const cartItemsEl = document.getElementById("cartItems");
 const cartTotalEl = document.getElementById("cartTotal");
 const checkoutBtn = document.getElementById("checkoutBtn");
 
+// Helpers for product overrides (persisting stock locally for static hosting)
 function getProductOverrides() {
 	try {
 		const raw = localStorage.getItem('pos_products_override');
@@ -64,6 +67,7 @@ function applyProductOverrides() {
 }
 
 function decrementStockForCheckout() {
+	// Decrement product stock based on items in cart and persist overrides
 	const overrides = getProductOverrides();
 	for (const { product, qty } of cart.values()) {
 		const current = products.find(pr => pr.id === product.id);
@@ -75,38 +79,40 @@ function decrementStockForCheckout() {
 	applyProductOverrides();
 }
 
+// Load products from JSON (static hosting friendly)
 async function loadProducts() {
 	try {
-		if (typeof location !== 'undefined' && location.protocol === 'file:') {
+		// First, try to use window.PRODUCT_DATA if available (works for both file:// and https://)
 		const baked = (typeof window !== 'undefined' ? window.PRODUCT_DATA : undefined);
-		let dataset = [];
-		if (Array.isArray(baked)) {
-			const tableNode = baked.find(n => n && n.type === 'table' && n.name === 'product-list' && Array.isArray(n.data));
-			if (tableNode) {
-				dataset = tableNode.data;
-			} else {
-				dataset = baked;
+		if (baked) {
+			let dataset = [];
+			if (Array.isArray(baked)) {
+				const tableNode = baked.find(n => n && n.type === 'table' && n.name === 'product-list' && Array.isArray(n.data));
+				if (tableNode) {
+					dataset = tableNode.data;
+				} else {
+					dataset = baked;
+				}
+			} else if (baked && Array.isArray(baked.data)) {
+				dataset = baked.data;
 			}
-		} else if (baked && Array.isArray(baked.data)) {
-			dataset = baked.data;
+
+			if (Array.isArray(dataset) && dataset.length > 0) {
+				products = dataset.map(normalizeProduct);
+				applyProductOverrides();
+
+				categories = new Set(products.map(p => p.category));
+				activeCategories = new Set(categories);
+				updateCategoryList();
+				renderProducts();
+				return;
+			}
 		}
 
-		if (!Array.isArray(dataset) || dataset.length === 0) {
-			throw new Error('No product data found in window.PRODUCT_DATA. Ensure product-data.js is included before app.js.');
-		}
-
-		products = (dataset || []).map(normalizeProduct);
-			applyProductOverrides();
-
-			categories = new Set(products.map(p => p.category));
-			activeCategories = new Set(categories);
-			updateCategoryList();
-			renderProducts();
-			return;
-		}
-
+		// Fallback: try to fetch product-list.json (only if window.PRODUCT_DATA is not available)
 		let response = await fetch('product-list.json', { cache: 'no-store' });
 
+		// Fallback to data/products.json if primary not found
 		if (!response.ok) {
 			throw new Error('product-list.json not found');
 		}
@@ -117,12 +123,18 @@ async function loadProducts() {
 		
 		const result = await response.json();
 		
+		// Support multiple formats:
+		// 1) Direct array of products
+		// 2) { data: [...] }
+		// 3) phpMyAdmin export array containing { type: "table", name: "product-list", data: [...] }
 		let loaded = [];
 		if (Array.isArray(result)) {
+			// phpMyAdmin export format
 			const tableNode = result.find(n => n && n.type === 'table' && n.name === 'product-list' && Array.isArray(n.data));
 			if (tableNode) {
 				loaded = tableNode.data;
 			} else {
+				// Assume it's already an array of products
 				loaded = result;
 			}
 		} else if (result && Array.isArray(result.data)) {
@@ -131,25 +143,32 @@ async function loadProducts() {
 
 		products = (loaded || []).map(normalizeProduct);
 
+		// Apply any locally persisted stock overrides
 		applyProductOverrides();
 		
+		// Extract unique categories from products
 		categories = new Set(products.map(p => p.category));
-		activeCategories = new Set(categories);
+		activeCategories = new Set(categories); // Show all categories by default
 		
+		// Update category list in UI
 		updateCategoryList();
 		
+		// Render products
 		renderProducts();
 	} catch (error) {
 		console.error('Error loading products:', error);
 		let errorMessage = 'ไม่สามารถโหลดข้อมูลสินค้าได้';
 		if (typeof location !== 'undefined' && location.protocol === 'file:') {
 			errorMessage += '<br><small>ไม่สามารถโหลดไฟล์ JSON ผ่าน file:// ได้ กรุณาเปิดผ่านเว็บเซิร์ฟเวอร์ เช่นใช้คำสั่งง่ายๆ npx serve หรือ python -m http.server</small>';
+		} else {
+			errorMessage += '<br><small>กรุณาตรวจสอบว่า product-data.js ถูกโหลดอย่างถูกต้อง</small>';
 		}
 		gridEl.innerHTML = `<div class="error-message">${errorMessage}</div>`;
 	}
 }
 
 function normalizeProduct(p) {
+	// Ensure product fields exist and image path points to images folder if necessary
 	const id = p.id ?? p.ID ?? String(p.index ?? p.Index ?? p.name ?? p.Name ?? Math.random().toString(36).slice(2));
 	const name = p.name ?? p.Name ?? '';
 	const price = Number(p.price ?? p.Price ?? 0);
@@ -159,10 +178,13 @@ function normalizeProduct(p) {
 	const category = p.category ?? p.Category ?? 'Other';
 	let image = p.image ?? p.Picture ?? '';
 
+	// Convert Windows absolute paths to relative images/ path
 	if (image && typeof image === 'string') {
+		// Remove surrounding quotes if any
 		if ((image.startsWith('"') && image.endsWith('"')) || (image.startsWith("'") && image.endsWith("'"))) {
 			image = image.slice(1, -1);
 		}
+		// Normalize backslashes and trim preceding path up to images/
 		const webish = image.replace(/\\/g, '/');
 		const idx = webish.toLowerCase().indexOf('images/');
 		if (idx !== -1) {
@@ -170,7 +192,9 @@ function normalizeProduct(p) {
 		}
 	}
 
+	// If no image provided, assume image file named after product under images/
 	if (!image && name) {
+		// Basic filename building: use original name, assume .jpg
 		image = `images/${name}.jpg`;
 	}
 
@@ -187,12 +211,16 @@ function normalizeProduct(p) {
 	};
 }
 
+// Update category list based on database categories
 function updateCategoryList() {
+	// Find the "ทั้งหมด" option and keep it
 	const allCategoryItem = categoryListEl.querySelector('li');
 	
+	// Clear the list but keep the first item (ทั้งหมด)
 	categoryListEl.innerHTML = '';
 	categoryListEl.appendChild(allCategoryItem);
 	
+	// Add categories from database
 	categories.forEach(category => {
 		const li = document.createElement('li');
 		li.innerHTML = `
@@ -205,6 +233,7 @@ function updateCategoryList() {
 	});
 }
 
+// Get Thai display name for categories (fallback to original if not found)
 function getCategoryDisplayName(category) {
 	const categoryMap = {
 		'Milk': 'นม',
@@ -217,6 +246,7 @@ function getCategoryDisplayName(category) {
 	return categoryMap[category] || category;
 }
 
+// Render products
 function renderProducts() {
 	const q = searchEl.value.trim().toLowerCase();
 	const filtered = products.filter(p => activeCategories.has(p.category) && (!q || p.name.toLowerCase().includes(q)));
@@ -224,14 +254,18 @@ function renderProducts() {
 }
 
 function productCardHTML(p) {
+	// Handle different image path formats
 	let imageSrc = p.image;
 	
+	// If image path doesn't start with http:// or https:// or /, treat as relative
 	if (imageSrc && !imageSrc.match(/^(https?:\/\/|\/)/)) {
+		// If it's just a filename, prepend images/
 		if (!imageSrc.includes('/')) {
 			imageSrc = `images/${imageSrc}`;
 		}
 	}
 	
+	// Fallback image if no image or image fails to load
 	const fallbackImage = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"><rect width="300" height="300" fill="%23f1f5f9"/></svg>';
 	
 	return `
@@ -246,6 +280,7 @@ function productCardHTML(p) {
 	`;
 }
 
+// Category interactions
 categoryListEl.addEventListener("change", (e) => {
 	const input = e.target;
 	if (input.tagName !== "INPUT") return;
@@ -261,8 +296,10 @@ categoryListEl.addEventListener("change", (e) => {
 	renderProducts();
 });
 
+// Search
 searchEl.addEventListener("input", renderProducts);
 
+// Product grid click
 gridEl.addEventListener("click", (e) => {
 	const btn = e.target.closest(".add-to-cart");
 	if (!btn) return;
@@ -276,6 +313,7 @@ function addToCart(product, qty) {
 	const item = cart.get(product.id) || { product, qty: 0 };
 	const newQty = item.qty + qty;
 	
+	// Check if adding this quantity would exceed available stock
 	if (newQty > product.stock) {
 		alert(`ไม่สามารถเพิ่มสินค้าได้ เนื่องจากสต็อกคงเหลือเพียง ${product.stock} ชิ้น`);
 		return;
@@ -284,6 +322,7 @@ function addToCart(product, qty) {
 	item.qty = Math.max(0, newQty);
 	if (item.qty <= 0) cart.delete(product.id); else cart.set(product.id, item);
 	
+	// Save cart to localStorage
 	saveCartToStorage();
 	renderCart();
 }
@@ -313,6 +352,7 @@ function cartItemHTML(p, qty) {
 	`;
 }
 
+// Cart interactions
 cartItemsEl.addEventListener("click", (e) => {
 	const root = e.target.closest('.cart-item');
 	if (!root) return;
@@ -338,10 +378,11 @@ cartItemsEl.addEventListener("input", (e) => {
 	let next = parseInt(input.value.replace(/\D/g, ''), 10);
 	if (Number.isNaN(next)) next = 0;
 	
+	// Check if the new quantity exceeds available stock
 	if (next > item.product.stock) {
 		alert(`ไม่สามารถเพิ่มจำนวนได้ เนื่องจากสต็อกคงเหลือเพียง ${item.product.stock} ชิ้น`);
-		next = item.product.stock;
-		input.value = next;
+		next = item.product.stock; // Set to maximum available
+		input.value = next; // Update the input field
 	}
 	
 	next = Math.max(0, next);
@@ -350,6 +391,7 @@ cartItemsEl.addEventListener("input", (e) => {
 	renderCart();
 });
 
+// Checkout
 checkoutBtn.addEventListener("click", async () => {
 	if (cart.size === 0) { 
 		alert("ไม่มีสินค้าในตะกร้า"); 
@@ -359,32 +401,38 @@ checkoutBtn.addEventListener("click", async () => {
 	const payment = document.querySelector('input[name="payment"]:checked').value;
 	const total = [...cart.values()].reduce((s, {product, qty}) => s + product.price * qty, 0);
 	
+	// Disable checkout button to prevent double-clicking
 	checkoutBtn.disabled = true;
 	checkoutBtn.textContent = 'กำลังประมวลผล...';
 	
 	try {
+		// Since we're on static hosting, update stock locally and persist overrides
 		decrementStockForCheckout();
 
+		// Proceed with payment confirmation
 		if (payment === 'qrcode') {
 			alert(`ชำระด้วย QR รวม ${total.toFixed(2)} บาท\n\nสต็อกได้รับการอัปเดตแล้ว (ภายในเครื่อง)`);
 		} else {
 			alert(`รับเงินสด รวม ${total.toFixed(2)} บาท\n\nสต็อกได้รับการอัปเดตแล้ว (ภายในเครื่อง)`);
 		}
 
+		// Clear cart and reload products to reflect new stock levels
 		cart.clear();
-		saveCartToStorage();
+		saveCartToStorage(); // Clear localStorage
 		renderCart();
-		await loadProducts();
+		await loadProducts(); // Reload products to show updated stock
 		
 	} catch (error) {
 		console.error('Checkout error:', error);
 		alert('เกิดข้อผิดพลาดในการชำระเงิน กรุณาลองใหม่อีกครั้ง');
 	} finally {
+		// Re-enable checkout button
 		checkoutBtn.disabled = false;
 		checkoutBtn.textContent = 'ชำระเงิน';
 	}
 });
 
-loadCartFromStorage();
+// Initial load
+loadCartFromStorage(); // Load cart from localStorage first
 loadProducts();
 renderCart();
