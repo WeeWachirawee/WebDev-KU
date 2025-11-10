@@ -1,4 +1,4 @@
-// Order page specific functionality
+
 document.addEventListener('DOMContentLoaded', function() {
 	loadCartFromStorage();
 	renderCart();
@@ -7,11 +7,9 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function simulateAIProductRecognition() {
-	// This is a placeholder for AI product recognition
-	// In a real implementation, you would send the image to an AI service
+
 	const predictionGrid = document.getElementById('predictionGrid');
 	
-	// Simulate some detected products
 	const mockDetections = [
 		{ name: 'นมสด', confidence: 0.95, price: 25.00 },
 		{ name: 'ชาเขียว', confidence: 0.87, price: 30.00 },
@@ -28,7 +26,6 @@ function simulateAIProductRecognition() {
 }
 
 function addDetectedProduct(name, price) {
-	// Find the product in the products array
 	const product = products.find(p => p.name === name);
 	if (product) {
 		addToCart(product, 1);
@@ -38,7 +35,6 @@ function addDetectedProduct(name, price) {
 	}
 }
 
-// Payment functionality
 function setupPaymentButtons() {
 	const cashBtn = document.querySelector('.cash-btn');
 	const scanBtn = document.querySelector('.scan-btn');
@@ -52,7 +48,6 @@ function setupPaymentButtons() {
 		handleQRPayment();
 	});
 	
-	// Handle cash input
 	cashInput.addEventListener('input', (e) => {
 		const cashAmount = parseFloat(e.target.value) || 0;
 		const total = [...cart.values()].reduce((s, {product, qty}) => s + product.price * qty, 0);
@@ -80,7 +75,6 @@ function handleCashPayment() {
 	const change = cashAmount - total;
 	alert(`รับเงินสด ฿${cashAmount.toFixed(2)}\nรวม ฿${total.toFixed(2)}\nเงินทอน ฿${change.toFixed(2)}`);
 	
-	// Process payment (same as checkout in app.js)
 	processPayment('cash');
 }
 
@@ -88,7 +82,6 @@ function handleQRPayment() {
 	const total = [...cart.values()].reduce((s, {product, qty}) => s + product.price * qty, 0);
 	alert(`ชำระด้วย QR Code\nรวม ฿${total.toFixed(2)}`);
 	
-	// Process payment (same as checkout in app.js)
 	processPayment('qrcode');
 }
 
@@ -100,35 +93,30 @@ async function processPayment(paymentMethod) {
 	
 	const total = [...cart.values()].reduce((s, {product, qty}) => s + product.price * qty, 0);
 	
-	// Disable checkout button to prevent double-clicking
 	const checkoutBtn = document.getElementById('checkoutBtn');
 	checkoutBtn.disabled = true;
 	checkoutBtn.textContent = 'กำลังประมวลผล...';
 	
 	try {
-		// Static hosting: update stock locally and persist overrides (function from app.js)
 		if (typeof decrementStockForCheckout === 'function') {
 			decrementStockForCheckout();
 		}
 
-		// Stock updated successfully, proceed with payment
 		if (paymentMethod === 'qrcode') {
 			alert(`ชำระด้วย QR รวม ${total.toFixed(2)} บาท\n\nสต็อกได้รับการอัปเดตแล้ว (ภายในเครื่อง)`);
 		} else {
 			alert(`รับเงินสด รวม ${total.toFixed(2)} บาท\n\nสต็อกได้รับการอัปเดตแล้ว (ภายในเครื่อง)`);
 		}
 		
-		// Clear cart and reload products to reflect new stock levels
 		cart.clear();
-		saveCartToStorage(); // Clear localStorage
+		saveCartToStorage();
 		renderCart();
-		await loadProducts(); // Reload products to show updated stock
+		await loadProducts();
 		
 	} catch (error) {
 		console.error('Checkout error:', error);
 		alert('เกิดข้อผิดพลาดในการชำระเงิน กรุณาลองใหม่อีกครั้ง');
 	} finally {
-		// Re-enable checkout button
 		checkoutBtn.disabled = false;
 		checkoutBtn.textContent = 'ชำระเงิน';
 	}
@@ -137,24 +125,23 @@ async function processPayment(paymentMethod) {
 let cameraStream = null;
 let videoElement = null;
 
-// Function to start the live camera
 async function startCamera() {
   try {
     videoElement = document.createElement("video");
     videoElement.setAttribute("autoplay", "");
-    videoElement.setAttribute("playsinline", ""); // iOS Safari
+    videoElement.setAttribute("playsinline", "");
     videoElement.style.width = "100%";
     videoElement.style.height = "100%";
     videoElement.style.objectFit = "cover";
 
     cameraStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "environment" } // rear camera for mobile
+      video: { facingMode: "environment" }
     });
 
     videoElement.srcObject = cameraStream;
 
     const cameraDisplay = document.getElementById("cameraDisplay");
-    cameraDisplay.innerHTML = ""; // clear placeholder
+    cameraDisplay.innerHTML = "";
     cameraDisplay.appendChild(videoElement);
   } catch (err) {
     console.error("Camera access error:", err);
@@ -162,7 +149,7 @@ async function startCamera() {
   }
 }
 
-// Function to take a snapshot from the live camera
+
 function takeSnapshot() {
   if (!videoElement) {
     alert("กรุณาเปิดกล้องก่อน");
@@ -181,12 +168,12 @@ function takeSnapshot() {
   const cameraDisplay = document.getElementById("cameraDisplay");
   cameraDisplay.innerHTML = `<img src="${imageData}" alt="Captured snapshot" style="width: 100%; height: 100%; object-fit: cover;">`;
 
-  // Stop video stream after snapshot
+
   if (cameraStream) {
     cameraStream.getTracks().forEach(track => track.stop());
   }
 
-  // Pass snapshot to AI recognition (reuse your existing function)
+
   simulateAIProductRecognition();
 }
 

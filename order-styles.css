@@ -1,6 +1,4 @@
-/* Order Page Specific Styles */
 
-/* Main Layout for Order Page */
 .order-layout {
 	display: grid;
 	grid-template-columns: 1fr 420px;
@@ -9,7 +7,6 @@
 	min-height: calc(100vh - 80px);
 }
 
-/* Camera Section */
 .camera-section {
 	background: var(--surface);
 	border-radius: 8px;
@@ -20,7 +17,6 @@
 	gap: 20px;
 }
 
-/* Camera Container */
 .camera-container {
 	position: relative;
 	display: flex;
@@ -64,7 +60,6 @@
 	border-radius: 10px;
 }
 
-/* Capture Button */
 .capture-btn {
 	position: absolute;
 	bottom: -25px;
@@ -97,7 +92,6 @@
 	color: #1f2937;
 }
 
-/* Prediction Section */
 .prediction-section {
 	width: 100%;
 }
@@ -167,7 +161,6 @@
 	color: var(--primary);
 }
 
-/* Payment Section Enhancements */
 .cash-input-section {
 	margin-bottom: 16px;
 }

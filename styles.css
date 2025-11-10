@@ -1,4 +1,4 @@
-/* Root theme */
+
 :root {
 	--brand-green: #8ac400;
 	--brand-green-dark: #6aa100;
@@ -20,7 +20,7 @@ body {
 	background: var(--brand-bg);
 }
 
-/* Top bar */
+
 .topbar {
 	display: flex;
 	align-items: center;
@@ -47,7 +47,7 @@ body {
 }
 .nav-item.active, .nav-item:hover { border-color: var(--brand-green); }
 
-/* Main layout */
+
 .layout {
 	display: grid;
 	grid-template-columns: 260px 1fr 420px;

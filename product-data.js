@@ -1,5 +1,3 @@
-// Product data extracted from product-list.json for file:// usage.
-// This is read by app.js via window.PRODUCT_DATA when no web server is present.
 window.PRODUCT_DATA = [
 	{"type":"header","version":"5.2.1","comment":"Export to JSON plugin for PHPMyAdmin"},
 	{"type":"database","name":"pos-chaloenrat"},
