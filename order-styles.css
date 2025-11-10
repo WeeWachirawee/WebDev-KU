@@ -1,0 +1,226 @@
+/* Order Page Specific Styles */
+
+/* Main Layout for Order Page */
+.order-layout {
+	display: grid;
+	grid-template-columns: 1fr 420px;
+	gap: 16px;
+	padding: 16px 16px 24px;
+	min-height: calc(100vh - 80px);
+}
+
+/* Camera Section */
+.camera-section {
+	background: var(--surface);
+	border-radius: 8px;
+	border: 2px solid var(--border);
+	padding: 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+/* Camera Container */
+.camera-container {
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.camera-display {
+	width: 100%;
+	max-width: 600px;
+	height: 400px;
+	background: #f1f5f9;
+	border: 2px solid var(--border);
+	border-radius: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+	overflow: hidden;
+}
+
+.camera-placeholder {
+	text-align: center;
+	color: var(--muted);
+}
+
+.camera-placeholder .camera-icon {
+	font-size: 48px;
+	margin-bottom: 10px;
+}
+
+.camera-placeholder p {
+	margin: 0;
+	font-size: 16px;
+}
+
+.camera-display img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	border-radius: 10px;
+}
+
+/* Capture Button */
+.capture-btn {
+	position: absolute;
+	bottom: -25px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 60px;
+	height: 60px;
+	background: #fbbf24;
+	border: none;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	transition: all 0.2s ease;
+}
+
+.capture-btn:hover {
+	background: #f59e0b;
+	transform: translateX(-50%) scale(1.05);
+}
+
+.capture-btn:active {
+	transform: translateX(-50%) scale(0.95);
+}
+
+.capture-icon {
+	font-size: 24px;
+	color: #1f2937;
+}
+
+/* Prediction Section */
+.prediction-section {
+	width: 100%;
+}
+
+.prediction-title {
+	margin: 0 0 16px;
+	font-size: 18px;
+	font-weight: 700;
+	color: var(--text);
+}
+
+.prediction-grid {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 16px;
+}
+
+.prediction-card {
+	background: var(--surface);
+	border: 2px solid var(--brand-green);
+	border-radius: 12px;
+	padding: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	position: relative;
+	transition: all 0.2s ease;
+}
+
+.prediction-card:hover {
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	transform: translateY(-2px);
+}
+
+.prediction-card .close-btn {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	width: 24px;
+	height: 24px;
+	background: #ef4444;
+	color: white;
+	border: none;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+}
+
+.prediction-name {
+	font-size: 16px;
+	font-weight: 600;
+	color: var(--text);
+	margin-bottom: 8px;
+}
+
+.prediction-confidence {
+	font-size: 14px;
+	color: var(--muted);
+	margin-bottom: 8px;
+}
+
+.prediction-price {
+	font-size: 18px;
+	font-weight: 700;
+	color: var(--primary);
+}
+
+/* Payment Section Enhancements */
+.cash-input-section {
+	margin-bottom: 16px;
+}
+
+.cash-input-section label {
+	display: block;
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--text);
+	margin-bottom: 8px;
+}
+
+.cash-input-section input {
+	width: 100%;
+	padding: 12px;
+	border: 2px solid var(--border);
+	border-radius: 8px;
+	font-size: 16px;
+	background: var(--surface);
+	color: var(--text);
+}
+
+.cash-input-section input:focus {
+	outline: none;
+	border-color: var(--primary);
+}
+
+.payment-buttons {
+	display: flex;
+	gap: 12px;
+	margin-bottom: 16px;
+}
+
+.payment-btn {
+	flex: 1;
+	padding: 12px 16px;
+	border: 2px solid var(--border);
+	border-radius: 8px;
+	background: var(--surface);
+	color: var(--text);
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.payment-btn:hover {
+	border-color: var(--primary);
+	background: var(--primary-light);
+}
+
+.payment-btn.active {
+	background: var(--primary);
+	color: white;
+	border-color: var(--primary);
+}

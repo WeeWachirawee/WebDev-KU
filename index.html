@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>POS - Store</title>
+	<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+	<header class="topbar">
+		<div class="brand">ร้านเจริญรัฐ</div>
+		<nav class="nav">
+			<a href="index.html" class="nav-item active" aria-current="page">Home</a>
+			<a href="order.html" class="nav-item">Orders</a>
+			<a href="#inventory" class="nav-item">Inventory</a>
+			<a href="#shipping" class="nav-item">Shipping</a>
+			<a href="#reports" class="nav-item">Reports</a>
+		</nav>
+	</header>
+
+	<main class="layout">
+		<aside class="categories" aria-label="Product categories">
+			<h2 class="categories-title">หมวดหมู่</h2>
+			<ul class="category-list" id="categoryList">
+				<li>
+					<label class="category-item">
+						<input type="checkbox" value="all" checked id="cat-all">
+						<span>ทั้งหมด</span>
+					</label>
+				</li>
+				<li>
+					<label class="category-item">
+						<input type="checkbox" value="Milk" checked>
+						<span>นม</span>
+					</label>
+				</li>
+				<li>
+					<label class="category-item">
+						<input type="checkbox" value="Tea" checked>
+						<span>ชา</span>
+					</label>
+				</li>
+				<li>
+					<label class="category-item">
+						<input type="checkbox" value="Coffee" checked>
+						<span>กาแฟ</span>
+					</label>
+				</li>
+				<li>
+					<label class="category-item">
+						<input type="checkbox" value="Fruit" checked>
+						<span>ผลไม้</span>
+					</label>
+				</li>
+				<li>
+					<label class="category-item">
+						<input type="checkbox" value="Soft Drinks" checked>
+						<span>น้ำหวาน</span>
+					</label>
+				</li>
+				<li>
+					<label class="category-item">
+						<input type="checkbox" value="Packaging" checked>
+						<span>กล่อง</span>
+					</label>
+				</li>
+			</ul>
+		</aside>
+
+		<section class="products" aria-label="Product feed">
+			<div class="product-toolbar">
+				<label for="search" class="sr-only">Search products</label>
+				<input id="search" type="search" placeholder="ค้นหาสินค้า" class="search-input">
+			</div>
+			<div id="productGrid" class="product-grid" aria-live="polite"></div>
+		</section>
+
+		<aside class="cart" aria-label="Cart">
+			<h2 class="cart-title">ตะกร้า</h2>
+			<div id="cartItems" class="cart-items"></div>
+			<div class="cart-footer">
+				<div class="cart-summary">
+					<div class="summary-row"><span>รวม</span><span id="cartTotal">฿0.00</span></div>
+				</div>
+				<div class="payment">
+					<label class="payment-option"><input type="radio" name="payment" value="cash" checked> เงินสด</label>
+					<label class="payment-option"><input type="radio" name="payment" value="qrcode"> สแกนจ่าย</label>
+				</div>
+				<div class="cart-actions">
+					<button id="checkoutBtn" class="btn-primary">ชำระเงิน</button>
+				</div>
+			</div>
+		</aside>
+	</main>
+
+	<!-- Load product data for file:// usage -->
+	<script src="product-data.js"></script>
+
+	<script src="app.js"></script>
+</body>
+</html>
